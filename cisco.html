@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Themed Packet Tracer Visual Copy</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #1a1a1a;
+            color: #fff;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 200px;
+            background-color: #2c2c2c;
+            color: #fff;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .device {
+            background-color: #333;
+            margin: 5px 0;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .device:hover {
+            background-color: #555;
+        }
+
+        .device img {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            background-color: #1a1a1a;
+            position: relative;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .network-device {
+            width: 60px;
+            height: 60px;
+            background-color: #3498db;
+            border-radius: 50%;
+            color: white;
+            text-align: center;
+            line-height: 60px;
+            position: absolute;
+            cursor: pointer;
+        }
+
+        .network-device.dragging {
+            opacity: 0.7;
+            cursor: grabbing;
+        }
+
+        .terminals-container {
+            width: 450px;
+            background-color: #2b2b2b;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        .terminal {
+            background-color: #1e1e1e;
+            border: 1px solid #444;
+            color: #00ff00;
+            font-family: monospace;
+            padding: 10px;
+            height: 120px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .blinking-cursor {
+            display: inline;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .command-input {
+            background-color: #111;
+            border: 1px solid #444;
+            color: #00ff00;
+            padding: 8px;
+            font-family: monospace;
+            margin-bottom: 10px;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Devices</h2>
+            <div class="device" draggable="true" data-type="router">
+                <img src="https://img.icons8.com/ios-filled/50/3498db/router.png" alt="Router Icon">Router
+            </div>
+            <div class="device" draggable="true" data-type="switch">
+                <img src="https://img.icons8.com/ios-filled/50/3498db/switch.png" alt="Switch Icon">Switch
+            </div>
+            <div class="device" draggable="true" data-type="pc">
+                <img src="https://img.icons8.com/ios-filled/50/3498db/pc-on-desk.png" alt="PC Icon">PC
+            </div>
+        </div>
+
+        <div class="workspace" id="workspace"></div>
+
+        <div class="terminals-container">
+            <div class="terminal" id="terminal1">Terminal 1<span class="blinking-cursor">_</span></div>
+            <div class="terminal" id="terminal2">Terminal 2<span class="blinking-cursor">_</span></div>
+            <div class="terminal" id="terminal3">Connectivity Logs<span class="blinking-cursor">_</span></div>
+            <input type="text" id="commandInput" class="command-input" placeholder="Enter command here...">
+        </div>
+    </div>
+
+    <script>
+        const workspace = document.getElementById('workspace');
+        const terminal1 = document.getElementById('terminal1');
+        const terminal2 = document.getElementById('terminal2');
+        const terminal3 = document.getElementById('terminal3');
+        const commandInput = document.getElementById('commandInput');
+        let draggedDevice = null;
+
+        // Handle dragging from sidebar
+        document.querySelectorAll('.device').forEach(device => {
+            device.addEventListener('dragstart', (e) => {
+                draggedDevice = e.target.getAttribute('data-type');
+            });
+        });
+
+        // Handle dropping on workspace
+        workspace.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        workspace.addEventListener('drop', (e) => {
+            if (draggedDevice) {
+                const deviceElement = createDeviceElement(draggedDevice, e.clientX, e.clientY);
+                workspace.appendChild(deviceElement);
+                draggedDevice = null;
+                logConnectivity();
+            }
+        });
+
+        function createDeviceElement(type, x, y) {
+            const element = document.createElement('div');
+            element.className = 'network-device';
+            element.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            element.style.left = (x - 30) + 'px';
+            element.style.top = (y - 30) + 'px';
+
+            // Make the device draggable within the workspace
+            element.addEventListener('mousedown', (e) => {
+                element.classList.add('dragging');
+                let offsetX = e.clientX - element.getBoundingClientRect().left;
+                let offsetY = e.clientY - element.getBoundingClientRect().top;
+
+                function onMouseMove(event) {
+                    element.style.left = (event.clientX - offsetX) + 'px';
+                    element.style.top = (event.clientY - offsetY) + 'px';
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', () => {
+                    element.classList.remove('dragging');
+                    document.removeEventListener('mousemove', onMouseMove);
+                }, { once: true });
+            });
+
+            return element;
+        }
+
+        // Handle commands input
+        commandInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && commandInput.value.trim() !== '') {
+                const command = commandInput.value.trim();
+                executeCommand(command);
+                commandInput.value = '';
+            }
+        });
+
+        function executeCommand(command) {
+            const commandLog = `> ${command}\nResult: Command executed.`;
+            terminal1.innerHTML += commandLog + '<br>';
+            terminal1.scrollTop = terminal1.scrollHeight;
+        }
+
+        // Random connectivity log generator
+        function logConnectivity() {
+            const connectivityLog = generateRandomLog();
+            terminal2.innerHTML += connectivityLog + '<br>';
+            terminal2.scrollTop = terminal2.scrollHeight;
+        }
+
+        function generateRandomLog() {
+            const events = [
+                "Router connected to Switch",
+                "PC successfully pinged Router",
+                "Data packet sent from PC to Switch",
+                "Connection established between devices",
+                "Switch received data from Router",
+                "Router configuration updated",
+                "PC failed to connect to Switch",
+                "Device link lost, reconnecting...",
+                "All devices operational",
+                "Base64 Data: " + btoa("Device online"),
+                "Base64 Data: " + btoa("Ping success"),
+                "Base64 Data: " + btoa("Connection lost"),
+                "Switch overload detected"
+            ];
+            const randomEvent = events[Math.floor(Math.random() * events.length)];
+            return `Log: ${randomEvent}`;
+        }
+
+        // Constant log generation for the third terminal
+        setInterval(() => {
+            const liveLog = generateRandomLog();
+            terminal3.innerHTML += liveLog + '<br>';
+            terminal3.scrollTop = terminal3.scrollHeight;
+        }, 300);
+    </script>
+</body>
+</html>

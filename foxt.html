@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Foxtrot XXE Terminal</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000000; /* Solid black background */
+      color: #f5f5f5;
+      font-family: 'Courier New', Courier, monospace;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .terminal {
+      flex: 1; /* Make the terminal take up the entire height */
+      background-color: #1e1e1e;
+      border-radius: 0;
+      padding: 20px;
+      overflow: hidden;
+    }
+    .output {
+      height: 85%;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-size: 14px;
+      padding-right: 10px;
+      color: #a5ff90; /* Default output color */
+    }
+    .input-line {
+      display: flex;
+      align-items: center;
+    }
+    .prompt {
+      color: #58a6ff;
+    }
+    #user-input {
+      background: transparent;
+      border: none;
+      color: #f5f5f5;
+      font-size: 14px;
+      outline: none;
+      width: 100%;
+    }
+    .app-name {
+      font-weight: bold;
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #58a6ff; /* App name color */
+    }
+    .ascii-art {
+      color: #58a6ff;
+      font-weight: bold;
+    }
+    .keyword {
+      color: #ff7070;
+    }
+    .success {
+      color: #90ee90;
+    }
+    .error {
+      color: #ff4c4c;
+    }
+  </style>
+</head>
+<body>
+  <div class="terminal">
+    <div class="app-name">Foxtrot XXE</div>
+    <div class="output" id="terminal-output">
+      <div class="ascii-art">
+        ______  ______  _  __  _______  _______  ______  _______  <br>
+       |  ____||  ____|| |/ / |__   __||__   __||  ____||__   __| <br>
+       | |__   | |__   | ' /     | |      | |   | |__      | |    <br>
+       |  __|  |  __|  |  <      | |      | |   |  __|     | |    <br>
+       | |     | |____ | . \     | |      | |   | |____    | |    <br>
+       |_|     |______||_|\_\    |_|      |_|   |______|   |_|    <br>
+      </div>
+      Welcome to <span class="keyword">Foxtrot XXE</span> v1.0. Type <span class="keyword">"help"</span> for commands.<br>
+    </div>
+    <div class="input-line">
+      <span class="prompt">A:\FoxtrotXXE&gt;</span>
+      <input type="text" id="user-input" autofocus autocomplete="off">
+    </div>
+  </div>
+
+  <script>
+    const terminalOutput = document.getElementById('terminal-output');
+    const userInput = document.getElementById('user-input');
+
+    const commands = {
+      help: 'Available commands: compile, clear, version, exit',
+      version: 'Foxtrot XXE v1.0 - Code to EXE compiler',
+      compile: 'Compiling... <span class="success">Success! EXE file created.</span>',
+      exit: 'Exiting Foxtrot XXE...'
+    };
+
+    userInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        const input = userInput.value.trim().toLowerCase();
+        executeCommand(input);
+        userInput.value = '';
+      }
+    });
+
+    function executeCommand(command) {
+      if (commands[command]) {
+        addLine(`A:\\\FoxtrotXXE&gt; ${command}`, 'prompt');
+        addLine(commands[command]);
+        if (command === 'exit') {
+          userInput.disabled = true;
+          setTimeout(() => window.close(), 1000);
+        }
+      } else if (command === 'clear') {
+        terminalOutput.innerHTML = `<div class="ascii-art">
+        ______  ______  _  __  _______  _______  ______  _______  <br>
+       |  ____||  ____|| |/ / |__   __||__   __||  ____||__   __| <br>
+       | |__   | |__   | ' /     | |      | |   | |__      | |    <br>
+       |  __|  |  __|  |  <      | |      | |   |  __|     | |    <br>
+       | |     | |____ | . \\     | |      | |   | |____    | |    <br>
+       |_|     |______||_|\\_\\    |_|      |_|   |______|   |_|    <br>
+        </div>
+        Welcome to <span class="keyword">Foxtrot XXE</span> v1.0. Type <span class="keyword">"help"</span> for commands.<br>`;
+      } else {
+        addLine(`A:\\\FoxtrotXXE&gt; ${command}`, 'prompt');
+        addLine('<span class="error">Error:</span> Command not found.');
+      }
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+    }
+
+    function addLine(text, styleClass = '') {
+      const line = document.createElement('div');
+      line.innerHTML = text;
+      if (styleClass) line.classList.add(styleClass);
+      terminalOutput.appendChild(line);
+    }
+  </script>
+</body>
+</html>

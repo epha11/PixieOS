@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixieOS</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: url('def.png') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .desktop {
+            background: url('def.png') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            flex-wrap: wrap;
+            padding: 10px;
+            height: calc(100vh - 50px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .desktop .icon {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            text-align: center;
+            position: absolute;
+            cursor: move;
+            background-color: transparent;
+        }
+
+        .desktop .icon img {
+            width: 48px;
+            height: 48px;
+        }
+
+        .desktop .icon-text {
+    margin-top: 5px;
+    font-size: 12px;
+    color: white; /* Change the text color to white */
+        }
+
+        .taskbar {
+            background-color: #000000;
+            color: black;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            cursor: pointer;
+            overflow-x: auto;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+
+        .taskbar-icon {
+            width: 40px;
+            height: 40px;
+            background-size: cover;
+            margin: 0 10px;
+            position: relative;
+        }
+
+        .taskbar-icon::after {
+            content: attr(data-name);
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 30px;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            margin-left: 20px;
+            background-color: #1e1e1e;
+            border-radius: 20px;
+            padding: 0 10px;
+            width: 300px;
+            border: 1px solid #474545;
+            height: 35px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-input {
+            background-color: transparent;
+            color: #000;
+            border: none;
+            padding: 0 10px;
+            border-radius: 20px;
+            width: 100%;
+            height: 30px;
+            box-shadow: none;
+            font-size: 14px;
+        }
+
+        .search-input::placeholder {
+            color: #bbb;
+        }
+
+        .search-input:focus {
+            outline: none;
+            background-color: #333;
+        }
+
+        .time-display {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: black;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .window {
+            position: absolute;
+            background-color: #000000;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            overflow: hidden;
+            width: 850px;
+            height: 500px;
+            display: none;
+        }
+
+        .window-header {
+            background-color: #000000;
+            color: white;
+            padding: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+
+        .window-header span {
+            margin-left: 10px;
+        }
+
+        .window-controls {
+            display: flex;
+            align-items: center;
+        }
+
+        .window-controls button {
+            width: 15px;
+            height: 15px;
+            margin: 0 2px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            text-align: center;
+        }
+
+        .window-controls button.minimize {
+            background-color: #f2f202;
+        }
+
+        .window-controls button.maximize {
+            background-color: #34d602;
+        }
+
+        .window-controls button.close {
+            background-color: #f70207;
+        }
+
+        .window-controls button:hover {
+            opacity: 0.8;
+        }
+
+        .window-content {
+            padding: 10px;
+            height: calc(100% - 30px);
+            overflow: auto;
+        }
+
+        .window-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .system-tray {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            margin-left: auto;
+        }
+
+        .system-tray-icon {
+            width: 20px;
+            height: 20px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            margin: 0 8px;
+            cursor: pointer;
+            background-color: transparent;
+        }
+
+        #appLauncher {
+            display: none;
+            position: fixed;
+            bottom: 50px;
+            left: 0;
+            width: 600px;
+            height: 600px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            transform: translateY(100%);
+        }
+
+        #appLauncher.launcher-open {
+            transform: translateY(0);
+        }
+
+        .launcher-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #444;
+        }
+
+        .launcher-search {
+            width: 90%;
+            padding: 5px 10px;
+            border-radius: 20px;
+            border: 1px solid #333;
+            background-color: #2c2c2c;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .launcher-icons {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            align-items: flex-start;
+            justify-content: flex-start;
+            height: calc(100% - 60px);
+            overflow-y: auto;
+        }
+
+        .launcher-icon {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            cursor: pointer;
+            background-color: transparent;
+        }
+
+        .launcher-icon img {
+            width: 48px;
+            height: 48px;
+        }
+
+        .launcher-icon .icon-text {
+            font-size: 12px;
+            color: white;
+            margin-top: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="desktop">
+    <div class="icon" id="icon-mzfx" style="top: 20px; left: 20px;" data-url="Fluxb.html">
+        <img src="duk.png" alt="Firefox">
+        <div class="icon-text">Firefox</div>
+    </div>
+    
+    <div class="icon" id="icon-fe" style="top: 120px; left: 20px;" data-url="filex.html">
+        <img src="folder.png" alt="File Explorer">
+        <div class="icon-text">File Explorer</div>
+    </div>
+    
+    <div class="icon" id="icon-rdc" style="top: 220px; left: 20px;" data-url="rdc.html">
+        <img src="rdcp.png" alt="RDC For Linux">
+        <div class="icon-text">RDC</div>
+    </div>
+    
+    <div class="icon" id="icon-sys" style="top: 320px; left: 20px;" data-url="sysm.html">
+        <img src="sys.png" alt="System Dashboard">
+        <div class="icon-text">System Dashboard</div>
+    </div>
+    
+    <div class="icon" id="icon-vs" style="top: 420px; left: 20px;" data-url="ced.html">
+        <img src="any.png" alt="Visual Studio Code">
+        <div class="icon-text">Visual Studio Code</div>
+    </div>
+    
+    <div class="icon" id="icon-fold" style="top: 520px; left: 20px;" data-url="sysm.html">
+        <img src="kursk.png" alt="Code Files">
+        <div class="icon-text">Pixie</div>
+    </div>
+    
+    <div class="icon" id="icon-call" style="top: 20px; left: 120px;" data-url="sysm.html">
+        <img src="kursk.png" alt="Tor">
+        <div class="icon-text">Tor</div>
+    </div>
+    
+    <div class="icon" id="icon-tor" style="top: 120px; left: 120px;" data-url="sysm.html">
+        <img src="iki.png" alt="Tor Browser">
+        <div class="icon-text">Tor Browser</div>
+    </div>
+    
+    <div class="icon" id="icon-shark" style="top: 220px; left: 120px;" data-url="sysm.html">
+        <img src="curve.svg" alt="Wireshark">
+        <div class="icon-text">Wireshark</div>
+    </div>
+    
+    <div class="icon" id="icon-cisco" style="top: 320px; left: 120px;" data-url="cisco.html">
+        <img src="con.png" alt="Cisco Packet Tracer">
+        <div class="icon-text">Cisco Packet Tracer</div>
+    </div>
+    
+    <div class="icon" id="icon-lb" style="top: 420px; left: 120px;" data-url="Sedge.html">
+        <img src="css.png" alt="HEDGE">
+        <div class="icon-text">HEDGE</div>
+    </div>
+    
+    <div class="icon" id="icon-lb" style="top: 520px; left: 120px;" data-url="DeepSearchmal-blocked.html">
+        <img src="netg.png" alt="MalSearch">
+        <div class="icon-text">Глубокий поиск</div>
+    </div>
+    
+    <div class="icon" id="icon-lb" style="top: 20px; left: 220px;" data-url="foxt.html">
+        <img src="foxtrot.png" alt="Foxtrot XXE">
+        <div class="icon-text">Foxtrot XXE</div>
+    </div>
+    
+    <div class="icon" id="icon-lb" style="top: 120px; left: 220px;" data-url="Fluxb.html">
+        <img src="chromnom.png" alt="Chromium">
+        <div class="icon-text">Chromium</div>
+    </div>
+    
+    <div class="icon" id="icon-lb" style="top: 220px; left: 220px;" data-url="foxt.html">
+        <img src="gx1.png" alt="Opera GX">
+        <div class="icon-text">Opera GX</div>
+    </div>
+    
+    <div class="icon" id="icon-lb" style="top: 320px; left: 220px;" data-url="Orion.html">
+        <img src="orion.png" alt="Orion Browser">
+        <div class="icon-text">Orion</div>
+    </div>
+    
+    <div class="icon" id="icon-kr" style="top: 420px; left: 220px;" data-url="KRONOS.html">
+        <img src="kronos.png" alt="Kronos">
+        <div class="icon-text">Kronos</div>
+    </div>
+    
+    </div>
+
+    <div class="taskbar" id="taskbar">
+        <div class="taskbar-icon" style="background-image: url('category.png');" data-name="Category"></div>
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Search...">
+        </div>
+        <div class="system-tray">
+            <div class="system-tray-icon" style="background-image: url('artz.png');" title="Network"></div>
+            <div class="system-tray-icon" style="background-image: url('idle.png');" title="Sound"></div>
+            <div class="system-tray-icon" style="background-image: url('sil.png');" title="Notifications"></div>
+            <div class="system-tray-icon" style="background-image: url('wifiz.png');" title="Clock"></div>
+            <div class="system-tray-icon" style="background-image: url('sidep.png');" title="Clock"></div>
+        </div>
+    </div>
+
+    <div class="time-display" id="timeDisplay">00:00:00 AM</div>
+
+    <div class="window" id="windowTemplate">
+        <div class="window-header">
+            <span class="window-title">Untitled</span>
+            <div class="window-controls">
+                <button class="minimize">−</button>
+                <button class="maximize">⇱</button>
+                <button class="close">x</button>
+            </div>
+        </div>
+        <div class="window-content">
+            <iframe class="window-iframe"></iframe>
+        </div>
+    </div>
+
+    <div id="appLauncher">
+        <div class="launcher-header">
+            <input type="text" class="launcher-search" placeholder="Search apps...">
+        </div>
+        <div id="launcherIcons" class="launcher-icons"></div>
+    </div>
+
+    <div id="launcherOnlyApps" style="display: none;">
+        <div class="launcher-app" data-url="sev.html" data-name="Settings" data-icon="gear (1).png"></div>
+        <div class="launcher-app" data-url="net.html" data-name="Notepad" data-icon="notepad.png"></div>
+        <div class="launcher-app" data-url="calendar.html" data-name="Task Manager" data-icon="settings.png"></div>
+        <div class="launcher-app" data-url="calendar.html" data-name="App Store" data-icon="shop.png"></div>
+        <div class="launcher-app" data-url="Python 3.2.html" data-name="Python 3.2" data-icon="python.png"></div>
+        <div class="launcher-app" data-url="Venda Security.html" data-name="Venda Security" data-icon="antivirus.png"></div>
+        <div class="launcher-app" data-url="Calender.html" data-name="Calendar" data-icon="calendar (1).png"></div>
+        <div class="launcher-app" data-url="Calender.html" data-name="Spotify" data-icon="spotify (1).png"></div>
+        <div class="launcher-app" data-url="Calender.html" data-name="VM Workstation Pro" data-icon="works.png"></div>
+        <div class="launcher-app" data-url="host.html" data-name="Sensory NET" data-icon="2024_10_25_0gs_Kleki.png"></div>
+        <div class="launcher-app" data-url="Terminal.html" data-name="Terminal" data-icon="blink.png"></div>
+        <div class="launcher-app" data-url="gravity.html" data-name="Gravity" data-icon="gravity.png"></div>
+        <div class="launcher-app" data-url="echelon.html" data-name="Echelon" data-icon="echelon.png"></div>
+        <div class="launcher-app" data-url="XKeyscore.html" data-name="XKeyscore" data-icon="key.png"></div>
+        <div class="launcher-app" data-url="eston.html" data-name="System Log" data-icon="log-in.png"></div>
+        <div class="launcher-app" data-url="clamav.html" data-name="ClamAV" data-icon="clam.png"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="GitHub" data-icon="git.png"></div>
+        <div class="launcher-app" data-url="hydra.html" data-name="Hydra" data-icon="hydra-logo.svg"></div>
+        <div class="launcher-app" data-url="jtr.html" data-name="JTRipper" data-icon="john.svg"></div>
+        <div class="launcher-app" data-url="whatweb.html" data-name="Whatweb" data-icon="whatweb.svg"></div>
+        <div class="launcher-app" data-url="nmap.html" data-name="NMAP" data-icon="nmp.svg"></div>
+        <div class="launcher-app" data-url="XSS.html" data-name="Beef-Xss" data-icon="beef.svg"></div>
+        <div class="launcher-app" data-url="suite.html" data-name="Burpsuite" data-icon="suit.svg"></div>
+        <div class="launcher-app" data-url="scripts.html" data-name="Impacket-Scripts" data-icon="packs.svg"></div>
+        <div class="launcher-app" data-url="crunch.html" data-name="Crunch" data-icon="crunch.svg"></div>
+        <div class="launcher-app" data-url="arm.html" data-name="Armitage" data-icon="arm.svg"></div>
+        <div class="launcher-app" data-url="skill.html" data-name="Starkiller" data-icon="skiller.svg"></div>
+        <div class="launcher-app" data-url="niko.html" data-name="Nikto" data-icon="niko.svg"></div>
+        <div class="launcher-app" data-url="pof.html" data-name="P0f" data-icon="pof.svg"></div>
+        <div class="launcher-app" data-url="Ncrack.html" data-name="Ncrack" data-icon="ncrack.svg"></div>
+        <div class="launcher-app" data-url="Masscan.html" data-name="Masscan" data-icon="masca.svg"></div>
+        <div class="launcher-app" data-url="enum.html" data-name="Enum4linux" data-icon="enum.svg"></div>
+        <div class="launcher-app" data-url="Dmitry.html" data-name="Dmitry" data-icon="dmi.svg"></div>
+        <div class="launcher-app" data-url="Binwalk.html" data-name="Binwalk" data-icon="bin.svg"></div>
+        <div class="launcher-app" data-url="Yara.html" data-name="Yara" data-icon="yara.svg"></div>
+        <div class="launcher-app" data-url="Wfuzz.html" data-name="Wfuzz" data-icon="Wfuzz.svg"></div>
+        <div class="launcher-app" data-url="sslyze.html" data-name="Sslyze" data-icon="ssl.svg"></div>
+        <div class="launcher-app" data-url="Medusa.html" data-name="Medusa" data-icon="med.svg"></div>
+        <div class="launcher-app" data-url="Httrack.html" data-name="Httrack" data-icon="htt.svg"></div>
+        <div class="launcher-app" data-url="Gvm.html" data-name="Gvm" data-icon="gvm.svg"></div>
+        <div class="launcher-app" data-url="Ghidra.html" data-name="Ghidra" data-icon="hid.svg"></div>
+        <div class="launcher-app" data-url="Fierce.html" data-name="Fierce" data-icon="fie.svg"></div>
+        <div class="launcher-app" data-url="Evil-Winrm.html" data-name="Evil-Winrm" data-icon="evil.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Driftnet" data-icon="drift.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Spiderfoot" data-icon="spider.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Macchanger" data-icon="macc.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Kismet" data-icon="kis.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Havoc" data-icon="havoc.svg"></div>  
+        <div class="launcher-app" data-url="glass.html" data-name="Eyewitness" data-icon="eye.svg"></div>  
+        <div class="launcher-app" data-url="glass.html" data-name="Chkrootkit" data-icon="chroot.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Tcpdump" data-icon="tcp.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Reaver" data-icon="reav.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Parsero" data-icon="par.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Recon-Ng" data-icon="rec.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Dirbuster" data-icon="dir.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Crackmapexec" data-icon="crackm.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Cewl" data-icon="cewl.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Bloodhound" data-icon="blood.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Wordlists" data-icon="word.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Veil" data-icon="veil.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Set" data-icon="set.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Lynis" data-icon="nis.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Legion" data-icon="leg.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Foremost" data-icon="for.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Dnsenum" data-icon="senum.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Dirsearch" data-icon="dirs.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Bettercap" data-icon="cap.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Amass" data-icon="amass.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="John" data-icon="jon.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Netdiscover" data-icon="netd.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Autopsy" data-icon="psy.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="SQLmap" data-icon="sqq.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Wifite" data-icon="wifite.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Responder" data-icon="responder.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="hPing3" data-icon="hp.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Ffuf" data-icon="fuf.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Ettercap" data-icon="etter.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Metasploit" data-icon="meta.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Gobuster" data-icon="gob.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Aircrack-Ng" data-icon="air.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Mimikatz" data-icon="mimi.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Theharvester" data-icon="harv.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Hashcat" data-icon="cat.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Wpscan" data-icon="wp.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Maltego" data-icon="malt.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Rkhunter" data-icon="rk.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Dirb" data-icon="dirb.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Netcat" data-icon="netcat.svg"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="sSaphire" data-icon="sapphire.png"></div>
+        <div class="launcher-app" data-url="National Security Agency.html" data-name="NSA" data-icon="clak.png"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="sierra.spc" data-icon="data.png"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Server Manager" data-icon="classda.png"></div>
+        <div class="launcher-app" data-url="kronosOS.html" data-name="KronosVM" data-icon="lakty.png"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Linux Downloader" data-icon="lfxd.png"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Google Playstore" data-icon="coza.png"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="Desktop SMS" data-icon="sms.png"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="File Share" data-icon="loggy.png"></div>
+        <div class="launcher-app" data-url="glass.html" data-name="$:root" data-icon="file (8).png"></div>
+        <div class="launcher-app" data-url="SYNDICATE.html" data-name="$:root" data-icon="vanguard.png"></div>
+
+    
+    </div>
+
+    <script>
+        function createWindow(title, url) {
+            const windowElement = document.getElementById('windowTemplate').cloneNode(true);
+            windowElement.id = '';
+            windowElement.style.display = 'block';
+            windowElement.style.left = '50px';
+            windowElement.style.top = '50px';
+            windowElement.querySelector('.window-title').textContent = title;
+            windowElement.querySelector('.window-iframe').src = url;
+
+            document.body.appendChild(windowElement);
+
+            makeDraggable(windowElement);
+            makeResizable(windowElement);
+
+            windowElement.querySelector('.close').addEventListener('click', function() {
+                windowElement.remove();
+            });
+
+            windowElement.querySelector('.minimize').addEventListener('click', function() {
+                windowElement.querySelector('.window-content').style.display = 'none';
+            });
+
+            windowElement.querySelector('.maximize').addEventListener('click', function() {
+                if (windowElement.style.width === '100%' && windowElement.style.height === '100%') {
+                    windowElement.style.width = '400px';
+                    windowElement.style.height = '300px';
+                } else {
+                    windowElement.style.width = '100%';
+                    windowElement.style.height = '100%';
+                    windowElement.style.left = '0';
+                    windowElement.style.top = '0';
+                }
+                windowElement.querySelector('.window-content').style.display = 'block';
+            });
+        }
+
+        function openURLInWindow(url) {
+            const title = url.split('/').pop().split('.')[0];
+            createWindow(title, url);
+        }
+
+        function makeDraggable(el) {
+            let offsetX, offsetY, mouseX, mouseY;
+
+            el.querySelector('.window-header').addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                offsetX = e.clientX - el.getBoundingClientRect().left;
+                offsetY = e.clientY - el.getBoundingClientRect().top;
+
+                function onMouseMove(e) {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                    el.style.left = `${mouseX - offsetX}px`;
+                    el.style.top = `${mouseY - offsetY}px`;
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+
+                document.addEventListener('mouseup', function() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                }, { once: true });
+            });
+        }
+
+        function makeResizable(el) {
+            const resizer = document.createElement('div');
+            resizer.style.width = '10px';
+            resizer.style.height = '10px';
+            resizer.style.backgroundColor = '#666';
+            resizer.style.position = 'absolute';
+            resizer.style.bottom = '0';
+            resizer.style.right = '0';
+            resizer.style.cursor = 'nwse-resize';
+            el.appendChild(resizer);
+
+            resizer.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+
+                function onMouseMove(e) {
+                    const width = e.clientX - el.getBoundingClientRect().left;
+                    const height = e.clientY - el.getBoundingClientRect().top;
+                    el.style.width = `${width}px`;
+                    el.style.height = `${height}px`;
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+
+                document.addEventListener('mouseup', function() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                }, { once: true });
+            });
+        }
+
+        function showAppLauncher() {
+            const launcher = document.getElementById('appLauncher');
+            const launcherIcons = document.getElementById('launcherIcons');
+            launcherIcons.innerHTML = ''; // Clear existing icons
+
+            // Add desktop icons
+            document.querySelectorAll('.icon').forEach(icon => {
+                const launcherIcon = document.createElement('div');
+                launcherIcon.classList.add('launcher-icon');
+                launcherIcon.innerHTML = `<img src="${icon.querySelector('img').src}" alt="${icon.querySelector('.icon-text').textContent}"><div class="icon-text">${icon.querySelector('.icon-text').textContent}</div>`;
+                launcherIcon.setAttribute('data-url', icon.getAttribute('data-url'));
+
+                launcherIcon.addEventListener('click', function() {
+                    const url = launcherIcon.getAttribute('data-url');
+                    if (url) {
+                        openURLInWindow(url);
+                        hideAppLauncher();
+                    }
+                });
+
+                launcherIcons.appendChild(launcherIcon);
+            });
+
+            // Add launcher-only apps
+            document.querySelectorAll('#launcherOnlyApps .launcher-app').forEach(app => {
+                const launcherIcon = document.createElement('div');
+                launcherIcon.classList.add('launcher-icon');
+                launcherIcon.innerHTML = `<img src="${app.getAttribute('data-icon')}" alt="${app.getAttribute('data-name')}"><div class="icon-text">${app.getAttribute('data-name')}</div>`;
+                launcherIcon.setAttribute('data-url', app.getAttribute('data-url'));
+
+                launcherIcon.addEventListener('click', function() {
+                    const url = launcherIcon.getAttribute('data-url');
+                    if (url) {
+                        openURLInWindow(url);
+                        hideAppLauncher();
+                    }
+                });
+
+                launcherIcons.appendChild(launcherIcon);
+            });
+
+            launcher.style.display = 'block';
+            setTimeout(() => {
+                launcher.classList.add('launcher-open');
+            }, 10);
+        }
+
+        function hideAppLauncher() {
+            const launcher = document.getElementById('appLauncher');
+            launcher.classList.remove('launcher-open');
+            setTimeout(() => {
+                launcher.style.display = 'none';
+            }, 300);
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                const launcher = document.getElementById('appLauncher');
+                if (launcher.classList.contains('launcher-open')) {
+                    hideAppLauncher();
+                } else {
+                    showAppLauncher();
+                }
+            }
+        });
+
+        document.querySelectorAll('.icon').forEach(icon => {
+            icon.addEventListener('dblclick', function() {
+                const url = icon.getAttribute('data-url');
+                if (url) {
+                    openURLInWindow(url);
+                }
+            });
+        });
+
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const hour12 = hours % 12 || 12;
+            document.getElementById('timeDisplay').textContent = `${hour12}:${minutes}:${seconds} ${ampm}`;
+        }
+
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Function to handle drag-and-drop for desktop icons
+        document.querySelectorAll('.desktop .icon').forEach(icon => {
+            let offsetX, offsetY;
+
+            icon.addEventListener('mousedown', function(e) {
+                offsetX = e.clientX - icon.getBoundingClientRect().left;
+                offsetY = e.clientY - icon.getBoundingClientRect().top;
+
+                function onMouseMove(e) {
+                    icon.style.left = `${e.clientX - offsetX}px`;
+                    icon.style.top = `${e.clientY - offsetY}px`;
+                }
+
+                document.addEventListener('mousemove', onMouseMove);
+
+                document.addEventListener('mouseup', function() {
+                    document.removeEventListener('mousemove', onMouseMove);
+                }, { once: true });
+            });
+        });
+    </script>
+</body>
+</html>

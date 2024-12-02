@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flux Browser</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('ftl.jpg');
+            background-size: cover;
+            background-position: center;
+            color: #e0e0e0;
+            user-select: none;
+        }
+
+        .browser-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2c2c2c;
+            padding: 5px 10px;
+            border-bottom: 2px solid #9b59b6; /* Lighter purple border */
+        }
+
+        .top-bar .window-control {
+            display: flex;
+            gap: 10px;
+        }
+
+        .window-control div {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            color: black;
+            cursor: pointer;
+        }
+
+        .window-control .close {
+            background-color: #ff5f56;
+        }
+
+        .window-control .minimize {
+            background-color: #ffbd2e;
+        }
+
+        .window-control .maximize {
+            background-color: #27c93f;
+        }
+
+        .tabs-container {
+            display: flex;
+            background-color: #2c2c2c;
+            padding: 5px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            background-color: #9b59b6; /* Lighter purple */
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin-right: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .tab.active {
+            background-color: #8e44ad; /* Glowing purple */
+            box-shadow: 0 0 10px rgba(142, 68, 173, 0.5); /* Glowing effect */
+        }
+
+        .tab:hover {
+            background-color: #8e44ad; /* Glowing purple */
+            box-shadow: 0 0 10px rgba(142, 68, 173, 0.5); /* Glowing effect */
+        }
+
+        .new-tab-btn {
+            background-color: #333;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .new-tab-btn:hover {
+            background-color: #555;
+        }
+
+        .tab-close-btn {
+            background-color: #ff4444;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+
+        .navbar {
+            display: flex;
+            background-color: #2c2c2c;
+            padding: 10px;
+            align-items: center;
+            border-bottom: 2px solid #9b59b6; /* Lighter purple border */
+        }
+
+        .navbar button {
+            background-color: transparent;
+            border: none;
+            color: white;
+            padding: 8px;
+            margin-right: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+        }
+
+        .navbar button:hover {
+            background-color: #9b59b6; /* Lighter purple */
+        }
+
+        .navbar input {
+            flex-grow: 1;
+            padding: 8px;
+            border-radius: 4px;
+            border: none;
+            margin-right: 5px;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .content {
+            flex-grow: 1;
+            display: flex;
+            position: relative;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .google-widget {
+            text-align: center;
+        }
+
+        .google-logo {
+            margin-bottom: 30px;
+        }
+
+        .google-logo img {
+            width: 272px;
+            height: 92px;
+        }
+
+        .google-widget form {
+            position: relative;
+            display: inline-block;
+        }
+
+        .google-widget input[type="text"] {
+            padding: 12px;
+            width: 500px;
+            border-radius: 24px;
+            border: 1px solid #ccc;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .google-widget input[type="submit"] {
+            display: none; /* Hide the submit button to mimic Google's form */
+        }
+
+        .google-widget .search-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+
+        .google-widget .search-icon img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .most-visited {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .most-visited div {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .most-visited img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .most-visited img:hover {
+            transform: scale(1.1);
+        }
+
+        .most-visited p {
+            color: white;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .iframe-container {
+            display: none; /* Hide the iframe container for the Google-style homepage */
+        }
+
+        .flux-browser {
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="browser-container">
+        <div class="top-bar">
+            <div class="flux-browser">Flux Browser</div>
+            <div class="window-control">
+                <div class="minimize">−</div>
+                <div class="maximize">◰</div>
+                <div class="close">x</div>
+            </div>
+        </div>
+        <div class="tabs-container">
+            <div class="tab active" onclick="setActiveTab(this)">New Tab</div>
+            <button class="new-tab-btn" onclick="createNewTab()">+</button>
+        </div>
+        <div class="navbar">
+            <button id="backBtn">←</button>
+            <button id="forwardBtn">→</button>
+            <button id="refreshBtn">⟳</button>
+            <input id="urlInput" type="text" placeholder="Search the web or enter URL">
+            <button id="goBtn">Go</button>
+        </div>
+        <div class="content">
+            <div class="google-widget">
+                <div class="google-logo">
+                    <img src="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png" alt="Google Logo">
+                </div>
+                <form id="searchForm">
+                    <input type="text" id="googleSearchInput" placeholder="Search Google">
+                    <div class="search-icon" onclick="performSearch()">
+                        <img src="https://www.iconpacks.net/icons/2/free-search-icon-2903-thumb.png" alt="Search">
+                    </div>
+                </form>
+                <div class="most-visited">
+                    <div onclick="loadURL('https://www.google.com')">
+                        <img src="https://www.google.com/favicon.ico" alt="Google">
+                        <p>Google</p>
+                    </div>
+                    <div onclick="loadURL('https://www.youtube.com')">
+                        <img src="https://www.youtube.com/s/desktop/851aa320/img/favicon_144x144.png" alt="YouTube">
+                        <p>YouTube</p>
+                    </div>
+                    <div onclick="loadURL('https://www.google.com/maps')">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/Logo_2013_Google_Maps.png" alt="Google Maps">
+                        <p>Maps</p>
+                    </div>
+                    <div onclick="loadURL('https://www.facebook.com')">
+                        <img src="https://www.facebook.com/favicon.ico" alt="Facebook">
+                        <p>Facebook</p>
+                    </div>
+                </div>
+            </div>
+            <div class="iframe-container">
+                <iframe id="iframe" src="https://www.google.com" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tabsContainer = document.querySelector('.tabs-container');
+        const newTabBtn = document.querySelector('.new-tab-btn');
+        const googleSearchInput = document.getElementById('googleSearchInput');
+        const urlInput = document.getElementById('urlInput');
+        const goBtn = document.getElementById('goBtn');
+
+        function createNewTab() {
+            const newTab = document.createElement('div');
+            newTab.classList.add('tab');
+            newTab.textContent = 'New Tab';
+            newTab.onclick = () => setActiveTab(newTab);
+
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'x';
+            closeBtn.classList.add('tab-close-btn');
+            closeBtn.addEventListener('click', () => closeTab(newTab));
+
+            newTab.appendChild(closeBtn);
+            tabsContainer.insertBefore(newTab, newTabBtn);
+
+            setActiveTab(newTab);
+        }
+
+        function closeTab(tab) {
+            if (tab.classList.contains('active')) {
+                tab.previousElementSibling
+                    ? setActiveTab(tab.previousElementSibling)
+                    : setActiveTab(tab.nextElementSibling);
+            }
+            tab.remove();
+        }
+
+        function setActiveTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            if (tab) {
+                tab.classList.add('active');
+            }
+        }
+
+        function performSearch() {
+            const query = googleSearchInput.value.trim();
+            if (query) {
+                createNewTab();
+                const activeTab = document.querySelector('.tab.active');
+                activeTab.textContent = `Google Search: ${query}`;
+                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+            }
+        }
+
+        function loadURL(url) {
+            if (url) {
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'http://' + url;
+                }
+                createNewTab();
+                const activeTab = document.querySelector('.tab.active');
+                activeTab.textContent = url;
+                window.open(url, '_blank');
+            }
+        }
+
+        document.getElementById('searchForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            performSearch();
+        });
+
+        googleSearchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        urlInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                loadURL(urlInput.value);
+            }
+        });
+
+        goBtn.addEventListener('click', () => {
+            loadURL(urlInput.value);
+        });
+    </script>
+</body>
+</html>
