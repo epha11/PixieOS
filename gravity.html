@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSA Gravity Software</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0e0e0e;
+            color: #e0e0e0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #00ccff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00ccff;
+        }
+        #logDisplay {
+            flex: 1;
+            border: 1px solid #444;
+            background: #1c1c1c;
+            overflow-y: auto;
+            padding: 10px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            box-shadow: 0 0 15px #00ccff;
+        }
+        #inputArea {
+            margin-top: 20px;
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #00ccff;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+        }
+        button {
+            background-color: #00ccff;
+            border: none;
+            color: black;
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #33ffff;
+        }
+        #relationshipGraph {
+            border: 1px solid #444;
+            height: 300px;
+            background: #222;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        #graphText {
+            position: relative;
+            z-index: 2;
+            color: #00ccff;
+            text-shadow: 0 0 10px #00ccff;
+        }
+    </style>
+</head>
+<body>
+
+<div id="container">
+    <h1>NSA Gravity Software</h1>
+    <div id="logDisplay">System ready. Awaiting input...</div>
+    <div id="inputArea">
+        <input type="text" id="inputField" placeholder="Enter target name..." />
+        <button onclick="analyzeTarget()">Analyze Target</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+    <div id="relationshipGraph">
+        <canvas id="graphCanvas"></canvas>
+        <div id="graphText">Relationship Graph Placeholder</div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 300;
+    canvas.height = 300;
+
+    function analyzeTarget() {
+        const inputField = document.getElementById('inputField');
+        const target = inputField.value.trim();
+
+        if (!target) return;
+
+        logDisplay(`Analyzing target: "${target}"...`);
+        inputField.value = ''; // Clear input field
+
+        // Simulate data processing and logging
+        setTimeout(() => {
+            logDisplay(`Analysis complete for target: ${target}`);
+            displayRelationshipGraph(target);
+        }, 1500);
+    }
+
+    function clearLogs() {
+        document.getElementById('logDisplay').innerText = "Logs cleared.";
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+        document.getElementById('graphText').innerText = "Relationship Graph Placeholder";
+    }
+
+    function logDisplay(message) {
+        const logDisplay = document.getElementById('logDisplay');
+        logDisplay.innerText += message + '\n';
+        logDisplay.scrollTop = logDisplay.scrollHeight; // Auto-scroll to the bottom
+    }
+
+    function displayRelationshipGraph(target) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+
+        const nodes = [
+            { name: target, x: 150, y: 50 },
+            { name: "Entity A", x: 50, y: 250 },
+            { name: "Entity B", x: 250, y: 250 },
+            { name: "Entity C", x: 100, y: 200 },
+            { name: "Entity D", x: 200, y: 200 },
+        ];
+
+        const edges = [
+            { from: nodes[0], to: nodes[1] },
+            { from: nodes[0], to: nodes[2] },
+            { from: nodes[0], to: nodes[3] },
+            { from: nodes[0], to: nodes[4] },
+        ];
+
+        // Draw edges
+        ctx.strokeStyle = "#00ccff";
+        ctx.lineWidth = 2;
+        edges.forEach(edge => {
+            ctx.beginPath();
+            ctx.moveTo(edge.from.x, edge.from.y);
+            ctx.lineTo(edge.to.x, edge.to.y);
+            ctx.stroke();
+        });
+
+        // Draw nodes
+        nodes.forEach(node => {
+            ctx.fillStyle = "#00ccff";
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#222";
+            ctx.fillText(node.name, node.x - 30, node.y + 5);
+        });
+
+        document.getElementById('graphText').innerText = `Displaying relationship graph for ${target}...`;
+    }
+</script>
+
+</body>
+</html>

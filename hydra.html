@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydra Password Cracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e2e;
+            color: #ffffff;
+        }
+        header {
+            background-color: #262640;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        main {
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #2e2e3c;
+            color: #ffffff;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #4caf50;
+            color: #ffffff;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #2e2e3c;
+            border-radius: 5px;
+            height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Hydra Password Cracker</h1>
+    </header>
+    <main>
+        <div class="form-group">
+            <label for="target">Target IP/URL:</label>
+            <input type="text" id="target" placeholder="Enter target address (e.g., 192.168.1.100)">
+        </div>
+        <div class="form-group">
+            <label for="protocol">Protocol:</label>
+            <select id="protocol">
+                <option value="ftp">FTP</option>
+                <option value="ssh">SSH</option>
+                <option value="http">HTTP</option>
+                <option value="https">HTTPS</option>
+                <option value="smtp">SMTP</option>
+                <option value="rdp">RDP</option>
+                <option value="telnet">Telnet</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="username">Username List:</label>
+            <input type="text" id="username" placeholder="Enter comma-separated usernames">
+        </div>
+        <div class="form-group">
+            <label for="password">Password List:</label>
+            <input type="text" id="password" placeholder="Enter comma-separated passwords">
+        </div>
+        <button id="startBtn">Start Attack</button>
+        <div class="output" id="output">
+            <strong>Output:</strong>
+        </div>
+    </main>
+    <script>
+        const outputElement = document.getElementById('output');
+        const startBtn = document.getElementById('startBtn');
+
+        startBtn.addEventListener('click', () => {
+            const target = document.getElementById('target').value;
+            const protocol = document.getElementById('protocol').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!target || !username || !password) {
+                alert('Please fill out all fields.');
+                return;
+            }
+
+            outputElement.innerHTML += `Starting attack on ${target} using ${protocol} protocol...\n`;
+            outputElement.innerHTML += `Attempting brute force with usernames: ${username} and passwords: ${password}...\n`;
+
+            // Simulate output
+            setTimeout(() => {
+                outputElement.innerHTML += `Attack in progress...\n`;
+                setTimeout(() => {
+                    outputElement.innerHTML += `Success: Found correct password for user "${username.split(',')[0]}" - "admin123"\n`;
+                }, 2000);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
